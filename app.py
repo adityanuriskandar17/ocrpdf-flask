@@ -5,9 +5,6 @@ import tempfile
 
 app = Flask(__name__)
 
-# Tentukan direktori untuk menyimpan hasil grayscale
-result_dir = 'result'
-
 def extract_text_from_pdf(pdf_file, separator="<<<<<<------------------------------------------ NEXT PAGE ------------------------------------------>>>>>>"):
     text = ""
     with pdfplumber.open(pdf_file) as pdf:
@@ -28,18 +25,19 @@ def ocr_pdf():
 
                 if 'convert' in request.form:
                     # Convert to grayscale
-                    grayscale_pdf = os.path.join(result_dir, 'grayscale.pdf')
-                    os.system(f'gswin64 -sOutputFile="{grayscale_pdf}" -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray -dCompatibilityLevel=1.4 -dNOPAUSE -dBATCH -dDownsampleMonoImages=true -dMonoImageDownsampleType=/Bicubic -dMonoImageResolution=2400 -dMonoImageDepth=1 "{file_path}"')
+                    grayscale_pdf = os.path.join(temp_dir, 'grayscale.pdf')
+                    os.system(f'gs -sOutputFile="{grayscale_pdf}" -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray -dCompatibilityLevel=1.4 -dNOPAUSE -dBATCH -dDownsampleMonoImages=true -dMonoImageDownsampleType=/Bicubic -dMonoImageResolution=2400 -dMonoImageDepth=1 "{file_path}"')
                     
                     # Send the grayscale PDF as a response for download
                     original_filename, original_extension = os.path.splitext(uploaded_file.filename)
                     download_name = f"{original_filename} (GRAYSCALE){original_extension}"
                     return send_file(grayscale_pdf, as_attachment=True, download_name=download_name)
 
+
                 elif 'run' in request.form:
                     # Run OCR
-                    grayscale_pdf = os.path.join(result_dir, 'grayscale.pdf')
-                    os.system(f'gswin64 -sOutputFile="{grayscale_pdf}" -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray -dCompatibilityLevel=1.4 -dNOPAUSE -dBATCH -dDownsampleMonoImages=true -dMonoImageDownsampleType=/Bicubic -dMonoImageResolution=1200 -dMonoImageDepth=-1 "{file_path}"')
+                    grayscale_pdf = os.path.join(temp_dir, 'grayscale.pdf')
+                    os.system(f'gs -sOutputFile="{grayscale_pdf}" -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray -dCompatibilityLevel=1.4 -dNOPAUSE -dBATCH -dDownsampleMonoImages=true -dMonoImageDownsampleType=/Bicubic -dMonoImageResolution=1200 -dMonoImageDepth=-1 "{file_path}"')
 
                     # Run OCR on the enhanced PDF
                     os.system(f'ocrmypdf "{grayscale_pdf}" "{grayscale_pdf}"')
@@ -53,6 +51,4 @@ def ocr_pdf():
     return render_template('upload.html')
 
 if __name__ == '__main__':
-    if not os.path.exists(result_dir):
-        os.mkdir(result_dir)  # Buat direktori 'result' jika belum ada
     app.run(debug=True)
