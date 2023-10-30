@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>OCR Result</title>
+  </head>
+  <body>
+    <h1>OCR Result</h1>
+    <p>Hasil Ekstrak OCR dari PDF:</p>
+    <ul>
+      {% for line in lines %}
+      <li>{{ line }}</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
